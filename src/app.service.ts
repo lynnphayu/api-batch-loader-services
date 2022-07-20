@@ -1,26 +1,50 @@
-import { Injectable } from '@nestjs/common';
-import { getCharacter } from 'rickmortyapi';
-import { Character } from 'rickmortyapi/dist/interfaces';
-import { Subject, mergeMap, map } from 'rxjs';
+import { Injectable } from '@nestjs/common'
+import { getCharacter } from 'rickmortyapi'
+import _ from 'lodash'
+import { Subject, mergeMap, map, bufferTime, tap, zip, from, of, mergeAll, filter } from 'rxjs'
+import { CharractersResponse, FindByIdsRequest } from './commons/types'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class AppService {
-  requestStream = new Subject<number>();
-  responseStream = new Subject<Character>();
-  proxyPipe = this.requestStream.pipe(
-    mergeMap((id) => getCharacter(id)),
-    map((e) => e.data),
-  );
+  requestStream = new Subject<FindByIdsRequest>()
+  responseStream = new Subject<CharractersResponse>()
 
-  constructor() {
-    this.proxyPipe.subscribe({
-      next: (v) => this.responseStream.next(v),
-      complete: () => this.responseStream.complete(),
-    });
+  constructor(private readonly config: ConfigService) {
+    this.requestStream
+      .pipe(
+        bufferTime(this.config.get('bufferTime')),
+        filter((e) => !!e.length),
+        mergeMap((reqs) =>
+          zip([
+            of(reqs).pipe(tap((e) => e)),
+            of(reqs).pipe(
+              mergeMap((reqs) => getCharacter<number[]>(reqs.flatMap(({ ids }) => ids))),
+              map((e) => e.data)
+            )
+          ]).pipe(
+            map(([reqs, chars]) =>
+              reqs.map(({ rayId, ids }) => ({
+                rayId,
+                chars: ids.map((id) => chars.find(({ id: charId }) => id === charId))
+              }))
+            )
+          )
+        ),
+        map((e) => from(e)),
+        mergeAll()
+      )
+      .subscribe({
+        next: (v) => this.responseStream.next(v),
+        complete: () => this.responseStream.complete()
+      })
   }
 
-  batchGetStream(id) {
-    this.requestStream.next(id);
-    return this.responseStream;
+  batchGetStream(req: FindByIdsRequest) {
+    this.requestStream.next(req)
+    return this.responseStream.pipe(
+      filter(({ rayId }) => rayId === req.rayId),
+      map(({ chars }) => chars)
+    )
   }
 }

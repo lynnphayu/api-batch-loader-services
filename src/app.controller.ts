@@ -1,28 +1,21 @@
-import { Controller, Get, Inject } from '@nestjs/common';
-import {
-  ClientProxy,
-  MessagePattern,
-  Payload,
-  Transport,
-} from '@nestjs/microservices';
-import { filter, pipe, tap } from 'rxjs';
-import { AppService } from './app.service';
-import { Commands } from './commons/constants';
+import { Controller, Get, Inject } from '@nestjs/common'
+import { ClientProxy, MessagePattern, Payload, Transport } from '@nestjs/microservices'
+import { randomUUID } from 'crypto'
+import { firstValueFrom } from 'rxjs'
+import { AppService } from './app.service'
+import { Commands } from './commons/constants'
 
 @Controller()
 export class AppController {
-  constructor(
-    private readonly appService: AppService,
-    @Inject('RICK_MORTY') private client: ClientProxy,
-  ) {}
+  constructor(private readonly appService: AppService, @Inject('RICK_MORTY') private client: ClientProxy) {}
 
   @MessagePattern(Commands.GET_ONE, Transport.TCP)
-  async getOne(@Payload() id: number) {
-    return this.appService.batchGetStream(id);
+  async getOne(@Payload() ids: number[]) {
+    return this.appService.batchGetStream({ ids: ids, rayId: randomUUID() })
   }
 
   @Get()
-  get() {
-    return this.client.send(Commands.GET_ONE, 1);
+  async get() {
+    return await firstValueFrom(this.client.send(Commands.GET_ONE, [3, 4]))
   }
 }
