@@ -22,9 +22,10 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push
+          repo: ${{ secrets.DOCKERHUB_REPO }}
+      - name: Build
         uses: docker/build-push-action@v3
         with:
           context: .
-          push: true
-          tags: user/app:latest
+      - name: Push
+        run: docker push $username/$repo:${{ steps.date.outputs.date }}
