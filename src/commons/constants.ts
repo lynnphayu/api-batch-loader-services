@@ -1,3 +1,3 @@
 export const Commands = {
-  GET_ONE: 'CMD_GET_ONE',
-};
+  GET_ONE: 'CMD_GET_ONE'
+}

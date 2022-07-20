@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
 import { getCharacter } from 'rickmortyapi'
-import _ from 'lodash'
 import { Subject, mergeMap, map, bufferTime, tap, zip, from, of, mergeAll, filter } from 'rxjs'
 import { CharractersResponse, FindByIdsRequest } from './commons/types'
 import { ConfigService } from '@nestjs/config'
@@ -10,10 +9,11 @@ export class AppService {
   requestStream = new Subject<FindByIdsRequest>()
   responseStream = new Subject<CharractersResponse>()
 
-  constructor(private readonly config: ConfigService) {
+  constructor(config: ConfigService) {
+    const bufferTimeMs = config.get('bufferTime')
     this.requestStream
       .pipe(
-        bufferTime(this.config.get('bufferTime')),
+        bufferTime(bufferTimeMs),
         filter((e) => !!e.length),
         mergeMap((reqs) =>
           zip([
