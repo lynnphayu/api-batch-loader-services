@@ -10,10 +10,10 @@ async function bootstrap() {
     transport: Transport.TCP,
     options: {
       host: config.get('host'),
-      port: config.get('port')
+      port: config.get('tcp')
     }
   })
   app.startAllMicroservices()
-  app.listen(3000)
+  app.listen(config.get('http'))
 }
 bootstrap()
