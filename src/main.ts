@@ -15,5 +15,7 @@ async function bootstrap() {
   })
   app.startAllMicroservices()
   app.listen(config.get('http'))
+  console.log(`HTTP on : ${config.get('http')}`)
+  console.log(`TCP on : ${config.get('tcp')}`)
 }
 bootstrap()
