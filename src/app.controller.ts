@@ -9,7 +9,7 @@ import { Commands } from './commons/constants'
 export class AppController {
   constructor(private readonly appService: AppService, @Inject('RICK_MORTY') private client: ClientProxy) {}
 
-  @MessagePattern(Commands.GET_ONE, Transport.TCP)
+  @MessagePattern(Commands.CMD_FIND_BY_IDS, Transport.TCP)
   async rpcGet(@Payload(new ParseArrayPipe({ items: Number })) ids: number[]) {
     return this.appService.batchGetStream({ ids: ids, rayId: randomUUID() })
   }
