@@ -1,19 +1,23 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, OnApplicationBootstrap } from '@nestjs/common'
 import { getCharacter } from 'rickmortyapi'
 import { Subject, mergeMap, map, bufferTime, tap, zip, from, of, mergeAll, filter } from 'rxjs'
 import { CharractersResponse, FindByIdsRequest } from './commons/types'
 import { ConfigService } from '@nestjs/config'
 
 @Injectable()
-export class AppService {
+export class AppService implements OnApplicationBootstrap {
   requestStream = new Subject<FindByIdsRequest>()
   responseStream = new Subject<CharractersResponse>()
+  bufferTimeMs: number
 
   constructor(config: ConfigService) {
-    const bufferTimeMs = config.get('bufferTime')
+    this.bufferTimeMs = config.get<number>('bufferTime')
+  }
+
+  onApplicationBootstrap() {
     this.requestStream
       .pipe(
-        bufferTime(bufferTimeMs),
+        bufferTime(this.bufferTimeMs),
         filter((e) => !!e.length),
         mergeMap((reqs) =>
           zip([
