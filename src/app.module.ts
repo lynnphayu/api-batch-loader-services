@@ -1,22 +1,9 @@
 import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { ConfigModule } from '@nestjs/config'
-import { ClientsModule, Transport } from '@nestjs/microservices'
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    ClientsModule.register([
-      {
-        name: 'RICK_MORTY',
-        transport: Transport.TCP,
-        options: {
-          host: 'localhost',
-          port: 4000
-        }
-      }
-    ])
-  ],
+  imports: [ConfigModule.forRoot({ isGlobal: true })],
   controllers: [AppController],
   providers: [AppService]
 })

@@ -1,11 +1,11 @@
-import { Character } from 'rickmortyapi/dist/interfaces';
+import { Character } from 'rickmortyapi/dist/interfaces'
 
 export type FindByIdsRequest = {
-  ids: number[];
-  rayId: string;
-};
+  ids: number[]
+  rayId: string
+}
 
 export type CharractersResponse = {
-  rayId: string;
-  chars: Character[];
-};
+  rayId: string
+  chars: Character[]
+}
